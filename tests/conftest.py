@@ -9,7 +9,6 @@ from app.schemas import MovieSchema
 def movie_a():
     return Movie(
         show_id="s2",
-        #type="Movie",
         title="7:19",
         director="Jorge Michel Grau",
         cast="Demián Bichir, Héctor Bonilla, Oscar Serrano, Azalia Ortiz, Octavio Michel, Carmen Beato",
@@ -26,7 +25,6 @@ def movie_a():
 def movie_b():
     return Movie(
         show_id="s3",
-        #type="Movie",
         title="23:59",
         director="Gilbert Chan",
         cast="Tedd Chan, Stella Chung, Henley Hii, Lawrence Koh, Tommy Kuan, Josh Lai, Mark Lee, Susan Leong, Benjamin Lim",

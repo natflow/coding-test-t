@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 class MovieSchema(BaseModel):
     show_id: str
-    # type: Literal["Movie"]
     title: str
     director: str
     cast: str

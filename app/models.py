@@ -10,7 +10,6 @@ class Movie(Base):
     __tablename__ = "movies"
 
     show_id = Column(String, primary_key=True, index=True)
-    # type = Column(String) # always "Movie"
     title = Column(String)
     director = Column(String)
     cast = Column(String)
