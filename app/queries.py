@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import List
 
-from fastapi import HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .models import Movie
@@ -14,10 +15,6 @@ FILTER_FIELD_NAMES = {
     "release_year",
     # all other fields prohibited
 }
-ALLOWED_FILTER_NAMES = Enum('FilterKeys', {
-    name: name
-    for name in FILTER_FIELD_NAMES
-})
 SEARCH_FIELD_NAMES = {
     *FILTER_FIELD_NAMES,
     "cast",
@@ -27,7 +24,7 @@ SORT_FIELD_NAMES = {
     "show_id",
     "release_year",
 }
-SORT_FIELD_KEYS = SORT_FIELD_NAMES + {
+SORT_FIELD_KEYS = SORT_FIELD_NAMES | {
     f"-{name}"
     for name in SORT_FIELD_NAMES
 }
@@ -45,29 +42,20 @@ def filter_movies(
         db: Session,
         filters: dict,
         search: str = None,
+        sort: str = None,
         skip: int = 0,
-        limit: int = 100,
-        sort: str = None
+        limit: int = 100
 ):
     query = db.query(Movie)
 
-    if filters:
-        disallowed_keys = filters.keys() - FILTER_FIELD_NAMES
-        if disallowed_keys:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Filtering not supported on {disallowed_keys}"
-            )
-        model_filters = {
-            _get_field(name): filters[name]
-            for name in FILTER_FIELD_NAMES
-            if name in filters.keys()
-        }
-        query = query.filter(**model_filters)
+    for name, value in filters.items(): # filter keys validated in endpoint
+        query = query.filter(_get_field(name) == value)
 
     if search:
-        for field in map(_get_field, SEARCH_FIELD_NAMES):
-            query |= query.filter(search in field)
+        query = query.filter(or_(*[
+            search == _get_field(field_name)
+            for field_name in SEARCH_FIELD_NAMES
+        ]))
 
     if sort:
         desc = sort.startswith('-')
@@ -81,12 +69,13 @@ def filter_movies(
 def update_movie(db: Session, movie: MovieSchema) -> None:
     update_dict = {
         _get_field(field_name): field_value
-        for field_name, field_value in movie.dict()
+        for field_name, field_value in movie.dict().items()
     }
     db.query(Movie).filter(Movie.show_id == movie.show_id).update(
         update_dict,
-        synchronize_session=False
+        synchronize_session=False # just UPDATE, don't follow with SELECT
     )
+    db.commit()
 
 
 def create_movie(db: Session, movie: MovieSchema) -> Movie:

@@ -1,18 +1,21 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
 
-from .database import Base, engine
+from .database import engine
 
+
+Base = declarative_base()
 
 class Movie(Base):
     __tablename__ = "movies"
 
     show_id = Column(String, primary_key=True, index=True)
-    #type = Column(String) # always "Movie"
+    # type = Column(String) # always "Movie"
     title = Column(String)
     director = Column(String)
     cast = Column(String)
     country = Column(String)
-    date_added = Column(DateTime)
+    date_added = Column(String) # not DateTime because it's stored like "April 1, 2019"
     release_year = Column(Integer)
     rating = Column(String)
     duration = Column(String)

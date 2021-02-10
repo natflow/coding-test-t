@@ -5,12 +5,12 @@ from pydantic import BaseModel
 
 class MovieSchema(BaseModel):
     show_id: str
-    # type: str = Literal("Movie")
+    # type: Literal["Movie"]
     title: str
     director: str
     cast: str
     country: str
-    date_added: str # stored like "April 1, 2019", so directly parseable to date type
+    date_added: str # stored like "April 1, 2019", so not directly parseable to date type
     release_year: str
     rating: str
     duration: str
