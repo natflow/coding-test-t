@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 
-from .database import Base
+from .database import Base, engine
 
 
 class Movie(Base):
@@ -18,3 +18,6 @@ class Movie(Base):
     duration = Column(String)
     listed_in = Column(String)
     description = Column(String)
+
+
+Base.metadata.create_all(bind=engine)

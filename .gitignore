@@ -127,4 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-titles.db
+
+# local database
+movies.db

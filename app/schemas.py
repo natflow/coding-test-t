@@ -1,17 +1,16 @@
-from datetime import date
+from typing import List
 
 from pydantic import BaseModel
 
 
 class MovieSchema(BaseModel):
-    # TODO: maybe add strictness to types
     show_id: str
     # type: str = Literal("Movie")
     title: str
     director: str
     cast: str
     country: str
-    date_added: date # TODO: parsing/formatting; pendulum.parse("April 1, 2019", strict=False)
+    date_added: str # stored like "April 1, 2019", so directly parseable to date type
     release_year: str
     rating: str
     duration: str
@@ -20,3 +19,8 @@ class MovieSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class MoviesWithSummarySchema(BaseModel):
+    movies: List[MovieSchema]
+    count: int

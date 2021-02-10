@@ -1,55 +1,51 @@
-from typing import List
+from typing import Dict, Optional
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
-from . import models, schemas
-from .database import SessionLocal, engine
+from .database import get_db
+from .models import Movie
+from .schemas import MovieSchema, MoviesWithSummarySchema
+from .queries import (
+    ALLOWED_SORT_KEYS,
+    ALLOWED_FILTER_NAMES,
+    create_movie,
+    filter_movies,
+    get_movie,
+    summarize_movies,
+    update_movie,
+)
 
-models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@app.post("/users/", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = schemas.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return schemas.create_user(db=db, user=user)
-
-
-@app.get("/users/", response_model=List[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    users = schemas.get_users(db, skip=skip, limit=limit)
-    return users
-
-
-@app.get("/users/{user_id}", response_model=schemas.User)
-def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = schemas.get_user(db, user_id=user_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
-
-
-@app.post("/users/{user_id}/items/", response_model=schemas.Item)
-def create_item_for_user(
-    user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)
+@app.get("/movies", response_model=MoviesWithSummarySchema)
+def read_movies(
+        db: Session = Depends(get_db),
+        skip: Optional[int] = 0,
+        limit: Optional[int] = 100,
+        sort: Optional[ALLOWED_SORT_KEYS] = None,
+        search: Optional[str] = None,
+        **filters: Optional[Dict[ALLOWED_FILTER_NAMES, str]]
 ):
-    return schemas.create_user_item(db=db, item=item, user_id=user_id)
+    movies = filter_movies(db, skip=skip, limit=limit)
+    return summarize_movies(movies)
 
 
-@app.get("/items/", response_model=List[schemas.Item])
-def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    items = schemas.get_items(db, skip=skip, limit=limit)
-    return items
+@app.get("/movies/{show_id}", response_model=MovieSchema)
+def read_movie(show_id: int, db: Session = Depends(get_db)):
+    db_movie = get_movie(db, show_id=show_id)
+    if db_movie is None:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return db_movie
+
+
+@app.put("/movies/{show_id}", response_model=MovieSchema)
+def put_movie(movie: MovieSchema, db: Session = Depends(get_db)):
+    db_movie = get_movie(db, movie.show_id)
+    if db_movie is not None:
+        update_movie(db, movie)
+    else:
+        create_movie(db, movie)
+    return movie
