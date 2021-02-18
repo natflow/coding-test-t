@@ -10,7 +10,7 @@
 ### Running Locally
 
 1. Build the image: `docker build --target dev --tag app:dev .`
-1. Start the server: `docker run --volume ${PWD}/app:/app/app --rm --tty --interactive app:dev`
+1. Start the server: `docker run --volume ${PWD}/app:/app/app --rm --interactive --publish 8000:8000 app:dev`
 1. In another terminal, check the docs: `curl 0.0.0.0:8000/docs`
 
 By default, the server will automatically reload when you change the source code.

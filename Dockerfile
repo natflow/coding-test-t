@@ -25,7 +25,9 @@ FROM test AS dev
 
 COPY movies.db .
 
-ENTRYPOINT ["uvicorn", "--host=0.0.0.0", "--port=8000", "--reload", "app.main:app"]
+ENTRYPOINT ["hypercorn", "--bind=0.0.0.0:8000", "--reload", "app.main:app"]
+
+EXPOSE 8000
 
 HEALTHCHECK --interval=5m --timeout=3s \
   CMD curl -f http://0.0.0.0:8000/docs
