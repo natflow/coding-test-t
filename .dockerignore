@@ -1,0 +1,7 @@
+.coverage
+.dockerignore
+.git
+.gitignore
+.pytestcache
+__pycache__
+venv

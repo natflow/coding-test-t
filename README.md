@@ -4,27 +4,26 @@
 
 ### System Requirements
 
-* Python 3.8
-
-
-### Setup
-
-1. Setup virtual environment: `python3 -m venv venv`
-1. Activate virtual environment: `source venv/bin/activate`
-1. Install requirements: `pip install -r requirements.txt -r requirements-dev.txt`
+* Docker
 
 
 ### Running Locally
 
-1. Follow Setup steps above
-1. Start the server: `uvicorn --host=0.0.0.0 --port=8000 --reload app.main:app`
-1. In another terminal, check setup and docs: `curl 0.0.0.0:8000/docs`
+1. Build the image: `docker build --target dev --tag app:dev .`
+1. Start the server: `docker run --volume ${PWD}/app:/app/app --rm --tty --interactive app:dev`
+1. In another terminal, check the docs: `curl 0.0.0.0:8000/docs`
+
+By default, the server will automatically reload when you change the source code.
 
 
 ### Running Tests
 
-1. Follow Setup steps above
-1. Run the tests, using an in-memory database: `SQLALCHEMY_DATABASE_URL=sqlite:// pytest`
+1. Build the image: `docker build --target test --tag app:test .`
+1. Run the tests: `docker run --volume ${PWD}/app:/app/app --volume ${PWD}/tests:/app/tests --rm --tty app:test`
+
+By default, the tests will use a fresh in-memory database.
+
+For interactive debugging, you can get a shell inside the Docker container: `docker run --volume ${PWD}/app:/app/app --volume ${PWD}/tests:/app/tests --rm --tty --interactive --entrypoint /bin/bash app:test`
 
 
 ## Endpoints
