@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 engine = create_engine(
-    os.environ.get("SQLALCHEMY_DATABASE_URL", "sqlite:///./movies.db"),
+    os.environ.get("SQLALCHEMY_DATABASE_URL", "sqlite://"),
     connect_args={"check_same_thread": False},
     poolclass=StaticPool
     # use the same connection across all threads, so tests can use the same in-memory database
