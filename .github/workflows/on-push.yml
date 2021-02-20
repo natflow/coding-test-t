@@ -1,10 +1,9 @@
 on: push
 
-name: Pytest
+name: Push Actions
 
 jobs:
-  build:
-
+  pytest:
     runs-on: ubuntu-latest
 
     steps:

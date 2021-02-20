@@ -1,0 +1,68 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: Tag Actions
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+
+
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
+
+    - name: Push to GitHub Container Registry
+      uses: docker/build-push-action@v2
+      with:
+        target: prod
+        tags: ghcr.io/${{ github.repository }}/app:${{ steps.get_version.outputs.VERSION }},ghcr.io/${{ github.repository }}/app:latest
+        push: true
+
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy code to Lambda
+      # Using hash because AWS keys are sensitive and I've audited the code at this commit
+      uses: qubitro/action-lambda-python-zip@4c30fe47382b4e5b55f833fcb68ac46bea9b4c16
+      with:
+        lambda_region: 'us-west-2'
+        lambda_layer_arn: 'arn:aws:lambda:us-west-2:491961793611:layer:coding-test-t-func-layer'
+        lambda_function_name: coding-test-t-func
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        REGION: 'us-west-2'
